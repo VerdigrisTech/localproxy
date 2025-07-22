@@ -78,15 +78,15 @@ jobs:
             # Some package managers, like deb, require the version to start with a digit.
             export VERSION=$(git describe --tags --abbrev=0 | sed 's/^v//')
 
-            mkdir -p debian
+            mkdir -p debian/<< parameters.architecture >><< parameters.variant >>
             mkdir -p dist/localproxy-linux-${ARCH}
 
             tar -xvf localproxy-linux-<< parameters.architecture >><< parameters.variant >>.tar -C dist/localproxy-linux-${ARCH}
-            nfpm pkg --packager deb --target debian/localproxy_${VERSION}_${ARCH}.deb
+            nfpm pkg --packager deb --target debian/<< parameters.architecture >><< parameters.variant >>/
       - store_artifacts:
           path: localproxy-linux-<< parameters.architecture >><< parameters.variant >>.tar.xz
       - store_artifacts:
-          path: debian
+          path: debian/<< parameters.architecture >><< parameters.variant >>
       - persist_to_workspace:
           root: .
           paths:
@@ -160,14 +160,14 @@ jobs:
             - run:
                 name: Publish to Package Cloud
                 command: |
-                  echo $distro_versions | tr ' ' '\n' | parallel 'echo "Pushing packages for {}..." && find /tmp/workspace/debian* -type f -name "*.deb" | xargs -I @ package_cloud push verdigris/packages/{} @'
+                  echo $distro_versions | tr ' ' '\n' | parallel 'echo "Pushing packages for {}..." && find /tmp/workspace/debian/* -type f -name "*.deb" | xargs -I @ package_cloud push verdigris/packages/{} @'
       - unless:
           condition: << pipeline.git.tag >>
           steps:
             - run:
                 name: Publish to Package Cloud (Dry Run)
                 command: |
-                  echo $distro_versions | tr ' ' '\n' | parallel 'echo "Pushing packages for {}..." && find /tmp/workspace/debian* -type f -name "*.deb" | xargs -I @ echo "package_cloud push verdigris/packages/{} @"'
+                  echo $distro_versions | tr ' ' '\n' | parallel 'echo "Pushing packages for {}..." && find /tmp/workspace/debian/* -type f -name "*.deb" | xargs -I @ echo "package_cloud push verdigris/packages/{} @"'
 
 workflows:
   release:
